@@ -22,7 +22,13 @@ Each entry looks like:
 
 ## Installation
 
-### Pre-built binary (recommended)
+### Homebrew (macOS / Linux)
+
+```sh
+brew install ogxd/tap/remi
+```
+
+### Pre-built binary
 
 **macOS / Linux:**
 ```sh
