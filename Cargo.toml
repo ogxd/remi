@@ -3,6 +3,8 @@ name = "remi"
 version = "0.1.0"
 edition = "2024"
 repository = "https://github.com/ogxd/remi"
+homepage = "https://github.com/ogxd/remi"
+description = "Your personal commit journal"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
