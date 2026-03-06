@@ -54,7 +54,12 @@ fn install_hook() -> Result<(), Box<dyn std::error::Error>> {
     let hooks = hooks_dir();
     fs::create_dir_all(&hooks)?;
 
-    let script = "#!/bin/sh\nremi hook post-commit\n";
+    // Use the absolute path of the current executable so the hook works
+    // regardless of whether remi is on the shell PATH during git invocation.
+    let remi_bin = std::env::current_exe()?;
+    let remi_bin = remi_bin.to_str().ok_or("executable path is not valid UTF-8")?;
+    let script = format!("#!/bin/sh\n{remi_bin} hook post-commit\n");
+
     let hook_path = hook_script_path();
     fs::write(&hook_path, script)?;
 
