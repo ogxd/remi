@@ -5,6 +5,8 @@ use std::{
     process::Command,
 };
 
+use chrono::Local;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -38,8 +40,12 @@ fn hooks_dir() -> PathBuf {
     remi_dir().join("hooks")
 }
 
-fn log_file() -> PathBuf {
-    remi_dir().join("commits.log")
+fn daily_log_file() -> PathBuf {
+    let now = Local::now();
+    let year = now.format("%Y").to_string();
+    let month = now.format("%m").to_string();
+    let filename = now.format("%d-%m-%Y.md").to_string();
+    remi_dir().join(year).join(month).join(filename)
 }
 
 fn hook_script_path() -> PathBuf {
@@ -105,29 +111,39 @@ fn ensure_hook() {
     }
 }
 
-fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
-    let output = Command::new("git")
-        .args(["log", "-1", "--pretty=%s"])
-        .output()?;
-
-    if !output.status.success() {
-        return Err("git log failed".into());
+fn git_output(args: &[&str]) -> Result<String, Box<dyn std::error::Error>> {
+    let out = Command::new("git").args(args).output()?;
+    if !out.status.success() {
+        return Err(format!("git {} failed", args.join(" ")).into());
     }
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
 
-    let title = String::from_utf8_lossy(&output.stdout);
-    let title = title.trim();
+fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
+    let title = git_output(&["log", "-1", "--pretty=%s"])?;
     if title.is_empty() {
         return Ok(());
     }
 
-    fs::create_dir_all(remi_dir())?;
+    let hash = git_output(&["log", "-1", "--pretty=%h"])?;
+
+    let repo_root = git_output(&["rev-parse", "--show-toplevel"])?;
+    let repo = PathBuf::from(&repo_root)
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or(repo_root);
+
+    let time = Local::now().format("%H:%M:%S").to_string();
+
+    let log = daily_log_file();
+    fs::create_dir_all(log.parent().unwrap())?;
 
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open(log_file())?;
+        .open(&log)?;
 
-    writeln!(file, "{title}")?;
+    writeln!(file, "- [{time}] [{repo}] [{hash}] {title}")?;
     Ok(())
 }
 
@@ -146,10 +162,7 @@ fn main() {
         }
         None => {
             ensure_hook();
-            println!(
-                "remi: commits will be logged to {}",
-                log_file().display()
-            );
+            println!("remi: commits will be logged under {}", remi_dir().display());
         }
     }
 }
