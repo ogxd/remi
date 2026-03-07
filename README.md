@@ -1,9 +1,9 @@
 # REMI 🧠
 
 Use the provided SKILL.md to enable your agent to answer complex questions such as:
-- What have I been working on before holiday?
 - Prepare my weekly report for my manager.
 - Write my self-assessment and performance review.
+- What was I working on before holidays?
 - Fill my time sheets.
 - Prepare me for a compensation discussion.
 - Provide peer feedback.
@@ -15,7 +15,7 @@ Use the provided SKILL.md to enable your agent to answer complex questions such 
 
 ## Quick start
 
-Remi is mainly meant to be used by your agent directly. Just install the [SKILL.md](https://github.com/ogxd/remi/blob/master/SKILL.md) and it will take care of everything. First usage may take some time for the database to be initialized.
+Remi is mainly meant to be used by your agent directly. Just install the [SKILL.md](https://raw.githubusercontent.com/ogxd/remi/master/SKILL.md) and it will take care of everything. First usage may take some time for the database to be initialized.
 
 ```sh
 curl --create-dirs -o ~/.claude/skills/remi/SKILL.md https://raw.githubusercontent.com/ogxd/remi/master/SKILL.md

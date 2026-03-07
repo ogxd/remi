@@ -8,7 +8,11 @@ Use this skill whenever the user asks anything that requires knowledge of their 
 - Providing peer feedback or collecting evidence of contributions
 - Tracking technical progression over time
 - Summarizing work done on a specific project or technology
-- Answering "what have I been working on lately?"
+- Answering "what have I been working on lately?" or "what have I been working on before holiday?"
+- Filling time sheets
+- Determining when work on a specific project started or how long it lasted
+- Checking what optimizations have already been attempted in a repository
+- Assessing seniority or scope of impact from actual work done
 
 ## Step 1 — Ensure remi is installed
 
@@ -48,6 +52,7 @@ Replace `~/src` with the root directory where the user keeps their repositories.
 
 ```sh
 remi scan ~/src --start 2025-01-01
+remi scan ~/src --start 2025-01-01 --end 2025-06-01
 ```
 
 This will discover all git repositories under that path, collect all commits authored by the current git user, and write daily log files. If a model is configured in `~/.remi/config.toml`, it will also generate LLM descriptions for commits that have no git body.
@@ -56,7 +61,10 @@ After scanning, generate recaps for past months and years:
 
 ```sh
 remi recap
+remi recap --start 2025-01-01 --end 2025-12-31
 ```
+
+Only periods that are fully in the past and fully within the given date range are recapped.
 
 ## How the data is organized
 
@@ -65,12 +73,12 @@ All data lives under `~/.remi/`:
 ```
 ~/.remi/
   2025/
-    recap.md          ← yearly recap (LLM-generated)
     01/
       recap.md        ← monthly recap (LLM-generated)
       14-01-2025.md   ← daily log
       27-01-2025.md
     ...
+    recap.md          ← yearly recap (LLM-generated)
   2026/
     03/
       07-03-2026.md
