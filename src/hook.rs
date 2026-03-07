@@ -29,7 +29,7 @@ pub fn install_hook() -> Result<(), Box<dyn std::error::Error>> {
         "#!/bin/sh\n\
          [ -f \"$HOME/.zshenv\" ] && . \"$HOME/.zshenv\"\n\
          [ -f \"$HOME/.profile\" ] && . \"$HOME/.profile\"\n\
-         {remi_bin} hook post-commit\n"
+         {remi_bin} hook post-commit &\n"
     );
 
     let hook_path = hook_script_path();
