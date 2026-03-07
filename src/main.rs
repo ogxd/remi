@@ -7,7 +7,9 @@ use std::{
 
 use chrono::Local;
 use clap::{Parser, Subcommand};
+use log::{error, info, warn};
 use serde::Deserialize;
+use simplelog::{Config as LogConfig, LevelFilter, WriteLogger};
 
 #[derive(Parser)]
 #[command(name = "remi", about = "Remi – your commit journal")]
@@ -84,8 +86,8 @@ fn install_hook() -> Result<(), Box<dyn std::error::Error>> {
     let current = String::from_utf8_lossy(&output.stdout);
     let current = current.trim();
     if !current.is_empty() && current != hooks.to_str().unwrap_or("") {
-        eprintln!(
-            "warning: git core.hooksPath is already set to '{}'. Overwriting with '{}'.",
+        warn!(
+            "git core.hooksPath is already set to '{}'. Overwriting with '{}'.",
             current,
             hooks.display()
         );
@@ -100,14 +102,14 @@ fn install_hook() -> Result<(), Box<dyn std::error::Error>> {
         ])
         .status()?;
 
-    eprintln!("remi: global git hook installed at {}", hook_path.display());
+    info!("global git hook installed at {}", hook_path.display());
     Ok(())
 }
 
 fn ensure_hook() {
     if !is_hook_installed() {
         if let Err(e) = install_hook() {
-            eprintln!("remi: failed to install git hook: {e}");
+            error!("failed to install git hook: {e}");
         }
     }
 }
@@ -134,6 +136,7 @@ async fn summarize_diff(diff: &str, model: &str) -> Option<String> {
 
     const MAX_DIFF_CHARS: usize = 8000;
     let diff = if diff.len() > MAX_DIFF_CHARS {
+        warn!("diff truncated to {MAX_DIFF_CHARS} chars for LLM summarization");
         &diff[..MAX_DIFF_CHARS]
     } else {
         diff
@@ -147,12 +150,34 @@ async fn summarize_diff(diff: &str, model: &str) -> Option<String> {
 
     let req = ChatRequest::new(vec![ChatMessage::user(prompt)]);
     let client = Client::default();
-    let response = client.exec_chat(model, req, None).await.ok()?;
-    response.content_text_into_string()
+    info!("requesting diff summary from model '{model}'");
+    match client.exec_chat(model, req, None).await {
+        Ok(response) => {
+            let summary = response.content_text_into_string();
+            if summary.is_none() {
+                warn!("LLM returned an empty response");
+            }
+            summary
+        }
+        Err(e) => {
+            error!("LLM call failed: {e}");
+            None
+        }
+    }
+}
+
+fn init_logger() {
+    let log_path = remi_dir().join("remi.log");
+    if let Ok(()) = fs::create_dir_all(remi_dir()) {
+        if let Ok(file) = OpenOptions::new().create(true).append(true).open(&log_path) {
+            let _ = WriteLogger::init(LevelFilter::Info, LogConfig::default(), file);
+        }
+    }
 }
 
 #[tokio::main]
 async fn main() {
+    init_logger();
     let cli = Cli::parse();
 
     match cli.command {
@@ -160,12 +185,13 @@ async fn main() {
             hook_command: HookCommands::PostCommit,
         }) => {
             if let Err(e) = record_commit().await {
-                eprintln!("remi: failed to record commit: {e}");
+                error!("failed to record commit: {e}");
                 std::process::exit(1);
             }
         }
         None => {
             ensure_hook();
+            info!("commits will be logged under {}", remi_dir().display());
             println!("remi: commits will be logged under {}", remi_dir().display());
         }
     }
@@ -192,7 +218,10 @@ async fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
             let diff = git_output(&["show", "HEAD"]).unwrap_or_default();
             summarize_diff(&diff, &model).await
         }
-        None => None,
+        None => {
+            info!("no model configured, skipping diff summary");
+            None
+        }
     };
 
     let log = daily_log_file();
@@ -208,5 +237,6 @@ async fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
         writeln!(file, "  - {summary}")?;
     }
 
+    info!("recorded commit [{hash}] in {}", log.display());
     Ok(())
 }
