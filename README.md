@@ -1,6 +1,14 @@
 # remi
 
-Remi automatically logs every git commit you make across all your repositories into a structured daily journal. It can summarize what changed using an LLM, and generate monthly and yearly recaps of your work.
+Use the provided SKILL.md to enable your agent to answer complex questions such as:
+- What have I been working on before holidaty?
+- Prepare my weekly report for my manager
+- Write my self-assessment and performance review
+- Fill my time sheets
+- Prepare me for a compensation discussion
+- Provide peer feedback
+- Track my technical progression over time
+- Summarize the work I've done on project ABC
 
 ## How it works
 
