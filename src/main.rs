@@ -69,7 +69,14 @@ fn install_hook() -> Result<(), Box<dyn std::error::Error>> {
 
     let remi_bin = std::env::current_exe()?;
     let remi_bin = remi_bin.to_str().ok_or("executable path is not valid UTF-8")?;
-    let script = format!("#!/bin/sh\n{remi_bin} hook post-commit\n");
+    // Source common shell init files so env vars (API keys etc.) are available.
+    // .zshenv is loaded by zsh for all shells; .profile covers bash/sh.
+    let script = format!(
+        "#!/bin/sh\n\
+         [ -f \"$HOME/.zshenv\" ] && . \"$HOME/.zshenv\"\n\
+         [ -f \"$HOME/.profile\" ] && . \"$HOME/.profile\"\n\
+         {remi_bin} hook post-commit\n"
+    );
 
     let hook_path = hook_script_path();
     fs::write(&hook_path, &script)?;
