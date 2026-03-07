@@ -211,6 +211,7 @@ async fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let hash = git_output(&["log", "-1", "--pretty=%h"])?;
+    let description = git_output(&["log", "-1", "--pretty=%b"]).unwrap_or_default();
 
     let repo_root = git_output(&["rev-parse", "--show-toplevel"])?;
     let repo = PathBuf::from(&repo_root)
@@ -239,9 +240,23 @@ async fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
         .append(true)
         .open(&log)?;
 
-    writeln!(file, "- [{time}] [{repo}] [{hash}] {title}")?;
+    writeln!(file, "- [{time}] Commit {hash} on repository \"{repo}\"")?;
+    writeln!(file, "  - Message: {title}")?;
+    if !description.is_empty() {
+        writeln!(file, "  - Description: {description}")?;
+    }
     if let Some(summary) = summary {
-        writeln!(file, "  - {summary}")?;
+        let mut lines = summary.lines();
+        if let Some(first) = lines.next() {
+            writeln!(file, "  - Summary: {first}")?;
+            for line in lines {
+                if line.trim().is_empty() {
+                    writeln!(file)?;
+                } else {
+                    writeln!(file, "    {line}")?;
+                }
+            }
+        }
     }
 
     info!("recorded commit [{hash}] in {}", log.display());
