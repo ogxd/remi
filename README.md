@@ -1,4 +1,4 @@
-# remi
+# REMI 🧠
 
 Use the provided SKILL.md to enable your agent to answer complex questions such as:
 - What have I been working on before holiday?
@@ -13,35 +13,17 @@ Use the provided SKILL.md to enable your agent to answer complex questions such 
 - Look for optimizations in this repository, but don't attempt this I've already tried in the past.
 - What rank do I deserve as a software engineer given what I do?
 
-## How it works
+## Quick start
 
-On first run, remi installs a global `post-commit` git hook. After that, every commit you make is appended and summarized to a daily markdown file.
+Remi is mainly meant to be used by your agent directly. Just install the [SKILL.md](https://github.com/ogxd/remi/blob/master/SKILL.md) and it will take care of everything. First usage may take some time for the database to be initialized.
 
-Logs are organized under `~/.remi/`:
-
-```
-~/.remi/
-  2026/
-    02/
-      14-02-2026.md
-      28-02-2026.md
-      recap.md        ← auto-generated at end of month
-    03/
-      07-03-2026.md
-  recap.md            ← auto-generated at end of year
+```sh
+curl --create-dirs -o ~/.claude/skills/remi/SKILL.md https://raw.githubusercontent.com/ogxd/remi/master/SKILL.md
 ```
 
-Each entry looks like:
+That's it... 🤯
 
-```markdown
-- [14:32:10] Commit a3f9c12 on repository "my-project"
-  - Message: Fix null pointer in auth handler
-  - Description: Adds a nil check before dereferencing the user pointer in the auth middleware.
-```
-
-If you provide a git commit body, it is used as the description. Otherwise, if a model is configured, remi calls the LLM to summarize the diff.
-
-## Installation
+## Manual installation
 
 ### Homebrew (macOS / Linux)
 
@@ -110,3 +92,31 @@ remi recap --start 2026-01-01 --end 2026-02-28
 ```
 
 Only periods that are fully in the past and fully within the given date range are recapped.
+
+## How it works
+
+On first run, remi installs a global `post-commit` git hook. After that, every commit you make is appended and summarized to a daily markdown file.
+
+Logs are organized under `~/.remi/`:
+
+```
+~/.remi/
+  2026/
+    02/
+      14-02-2026.md
+      28-02-2026.md
+      recap.md        ← auto-generated at end of month
+    03/
+      07-03-2026.md
+  recap.md            ← auto-generated at end of year
+```
+
+Each entry looks like:
+
+```markdown
+- [14:32:10] Commit a3f9c12 on repository "my-project"
+  - Message: Fix null pointer in auth handler
+  - Description: Adds a nil check before dereferencing the user pointer in the auth middleware.
+```
+
+If you provide a git commit body, it is used as the description. Otherwise, if a model is configured, remi calls the LLM to summarize the diff.
