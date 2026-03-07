@@ -1,14 +1,17 @@
 # remi
 
 Use the provided SKILL.md to enable your agent to answer complex questions such as:
-- What have I been working on before holidaty?
-- Prepare my weekly report for my manager
-- Write my self-assessment and performance review
-- Fill my time sheets
-- Prepare me for a compensation discussion
-- Provide peer feedback
-- Track my technical progression over time
-- Summarize the work I've done on project ABC
+- What have I been working on before holiday?
+- Prepare my weekly report for my manager.
+- Write my self-assessment and performance review.
+- Fill my time sheets.
+- Prepare me for a compensation discussion.
+- Provide peer feedback.
+- Track my technical progression since I arrived at the company.
+- When did I work on the project ABC and for how long?
+- Summarize the work I've done on project ABC.
+- Look for optimizations in this repository, but don't attempt this I've already tried in the past.
+- What rank do I deserve as a software engineer given what I do?
 
 ## How it works
 
