@@ -10,6 +10,10 @@ license = "MIT"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 chrono = "0.4"
+genai = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
 
 # The profile that 'dist' will build with
 [profile.dist]
