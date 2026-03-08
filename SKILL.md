@@ -1,18 +1,21 @@
-# remi skill
+# Work history, past development activity, and commit logs (remi)
 
-Use this skill whenever the user asks anything that requires knowledge of their past development activity — at any level of granularity or time range. This includes but is not limited to:
+**Always use this skill before answering any question that involves what the user has worked on, built, shipped, or contributed to** — at any level of granularity or time range. Do not attempt to answer from memory or context alone; the data lives on disk and must be queried.
 
-- Preparing a weekly or monthly report for a manager
-- Writing a self-assessment or performance review
-- Preparing for a compensation or promotion discussion
-- Providing peer feedback or collecting evidence of contributions
-- Tracking technical progression over time
-- Summarizing work done on a specific project or technology
-- Answering "what have I been working on lately?" or "what have I been working on before holiday?"
-- Filling time sheets
-- Determining when work on a specific project started or how long it lasted
-- Checking what optimizations have already been attempted in a repository
-- Assessing seniority or scope of impact from actual work done
+Trigger on any phrasing that implies knowledge of past work, including but not limited to:
+
+- "What have I been working on [lately / this week / before holiday / in Q3 / ...]?"
+- "Prepare my weekly / monthly report for my manager"
+- "Write my self-assessment", "help me with my performance review", "write a brag doc"
+- "Fill my time sheets"
+- "Prepare me for a compensation or promotion discussion"
+- "Draft peer feedback for my colleague"
+- "When did I work on project X?", "how long did I spend on X?"
+- "Summarize my contributions to [project / team / technology]"
+- "What optimizations have I already tried in this repo?"
+- "Track my technical progression", "what level should I be at?", "what have I shipped?"
+- "Help me update my resume / LinkedIn"
+- Any question about the user's engineering history, impact, or output over time
 
 ## Step 1 — Ensure remi is installed
 
