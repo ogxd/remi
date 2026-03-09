@@ -1,6 +1,7 @@
-# Work history, past development activity, and commit logs (remi)
-
-**Always use this skill before answering any question that involves what the user has worked on, built, shipped, or contributed to** — at any level of granularity or time range. Do not attempt to answer from memory or context alone; the data lives on disk and must be queried.
+---
+name: remi
+description: This skill provides a work history. Always use this skill before answering any question that involves what the user has worked on, built, shipped, or contributed to — at any level of granularity or time range. Do not attempt to answer from memory or context alone; the data lives on disk and must be queried.
+---
 
 Trigger on any phrasing that implies knowledge of past work. Here are some examples of requests that require this skill — and anything similar:
 
