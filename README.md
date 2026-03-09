@@ -1,18 +1,25 @@
 # REMI 🧠
 
-Your agent can now reason over years of your engineering work. Ask it to:  
-`> Prepare my weekly report for my manager.`  
-`> Write my self-assessment and performance review.`  
-`> Fill my time sheets for the past two weeks.`  
-`> Prepare me for a compensation discussion.`  
-`> Give peer feedback and menthorship.`  
-`> Summarize my contributions to project ABC.`  
-`> Tell me when I last worked on project ABC and for how long.`  
-`> Look for optimizations in this repo, skipping anything I've already tried.`  
-`> Track my technical progression since I joined the company.`  
-`> Tell me what engineering level I deserve based on my actual work.`  
+Your agent can now reason over years of your engineering work. Ask it to:
 
-And probably much more...
+
+**Engineering**
+- Look for optimizations in [repository]. Skip things I've already tried.
+- When did that [regression] might have been introduced?
+- Summarize my contributions to [project].
+- Tell me when I last worked on [project] and for how long.
+
+**Reporting & Admin**
+- Prepare my weekly meeting notes.
+- Fill my time sheets for the past two weeks.
+- Give peer feedback on my colleagues.
+- How's my productivity going?
+
+**Career & Growth**
+- Write my self-assessment and performance review.
+- Prepare me for a future promotion.
+- Track my technical progression since I joined the company.
+- What's my coding style like?
 
 ## Quick start
 

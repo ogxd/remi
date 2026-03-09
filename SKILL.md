@@ -2,20 +2,25 @@
 
 **Always use this skill before answering any question that involves what the user has worked on, built, shipped, or contributed to** — at any level of granularity or time range. Do not attempt to answer from memory or context alone; the data lives on disk and must be queried.
 
-Trigger on any phrasing that implies knowledge of past work, including but not limited to:
+Trigger on any phrasing that implies knowledge of past work. Here are some examples of requests that require this skill — and anything similar:
 
-- "What have I been working on [lately / this week / before holiday / in Q3 / ...]?"
-- "Prepare my weekly / monthly report for my manager"
-- "Write my self-assessment", "help me with my performance review", "write a brag doc"
-- "Fill my time sheets"
-- "Prepare me for a compensation or promotion discussion"
-- "Draft peer feedback for my colleague"
-- "When did I work on project X?", "how long did I spend on X?"
-- "Summarize my contributions to [project / team / technology]"
-- "What optimizations have I already tried in this repo?"
-- "Track my technical progression", "what level should I be at?", "what have I shipped?"
-- "Help me update my resume / LinkedIn"
-- Any question about the user's engineering history, impact, or output over time
+**Engineering**
+- "Look for optimizations in [repository], skipping anything I've already tried."
+- "When might that [regression] have been introduced?"
+- "Summarize my contributions to [project]."
+- "Tell me when I last worked on [project] and for how long."
+
+**Reporting & Admin**
+- "Prepare my weekly meeting notes."
+- "Fill my time sheets for the past two weeks."
+- "Give peer feedback on my colleagues."
+- "How's my productivity going?"
+
+**Career & Growth**
+- "Write my self-assessment and performance review."
+- "Prepare me for a future promotion."
+- "Track my technical progression since I joined the company."
+- "What's my coding style like?"
 
 ## Step 1 — Ensure remi is installed
 
