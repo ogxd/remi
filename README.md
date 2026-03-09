@@ -2,7 +2,6 @@
 
 Your agent can now reason over years of your engineering work. Ask it to:
 
-
 **Engineering**
 - Look for optimizations in [repository]. Skip things I've already tried.
 - When did that [regression] might have been introduced?
@@ -12,12 +11,12 @@ Your agent can now reason over years of your engineering work. Ask it to:
 **Reporting & Admin**
 - Prepare my weekly meeting notes.
 - Fill my time sheets for the past two weeks.
-- Give peer feedback on my colleagues.
+- Give me peer feedback on my work, as if your were my colleague.
 - How's my productivity going?
 
 **Career & Growth**
+- Find key areas to improve my overall productivity.
 - Write my self-assessment and performance review.
-- Prepare me for a future promotion.
 - Track my technical progression since I joined the company.
 - What's my coding style like?
 
