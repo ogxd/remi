@@ -146,12 +146,11 @@ pub fn run_check() {
         return;
     };
 
-    let mut paths: Vec<PathBuf> = entries
+    let paths: Vec<PathBuf> = entries
         .flatten()
         .map(|e| e.path())
         .filter(|p| p.extension().map(|e| e == "md").unwrap_or(false))
         .collect();
-    paths.sort();
 
     let mut commits: Vec<PendingCommit> = Vec::new();
     let mut month_recaps: Vec<PendingRecap> = Vec::new();
@@ -170,6 +169,10 @@ pub fn run_check() {
             None => {}
         }
     }
+
+    commits.sort_by_key(|c| c.timestamp);
+    month_recaps.sort_by(|a, b| a.period.cmp(&b.period));
+    year_recaps.sort_by(|a, b| a.period.cmp(&b.period));
 
     if commits.is_empty() && month_recaps.is_empty() && year_recaps.is_empty() {
         println!("No pending items.");
