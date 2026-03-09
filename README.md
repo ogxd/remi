@@ -32,6 +32,8 @@ That's it... 🤯
 
 ## Manual installation
 
+> :warning: **You probably don't need to manuall install remi. Using the SKILL.md should take care of everything for you through your agent.**
+
 ### Homebrew (macOS / Linux)
 
 ```sh
