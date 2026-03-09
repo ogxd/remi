@@ -31,17 +31,8 @@ enum Commands {
         #[command(subcommand)]
         hook_command: HookCommands,
     },
-    /// Install the git hook, optionally scan repos, queue recaps, then output pending items
-    Check {
-        /// Root path to scan for git repositories (optional, for first-time setup or backfill)
-        path: Option<std::path::PathBuf>,
-        /// Only include commits/recaps on or after this date (YYYY-MM-DD)
-        #[arg(long, value_name = "YYYY-MM-DD")]
-        start: Option<String>,
-        /// Only include commits/recaps on or before this date (YYYY-MM-DD)
-        #[arg(long, value_name = "YYYY-MM-DD")]
-        end: Option<String>,
-    },
+    /// Install the git hook, queue missing recaps, then output pending items for agent processing
+    Check,
     /// Record a processed item (commit summary or recap completion)
     Record {
         #[command(subcommand)]
@@ -113,13 +104,9 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        Some(Commands::Check { path, start, end }) => {
+        Some(Commands::Check) => {
             ensure_hook();
-            if let Some(p) = path {
-                run_scan(p, start, end);
-            } else {
-                maybe_generate_recaps();
-            }
+            maybe_generate_recaps();
             pending::run_check();
         }
         Some(Commands::Record { record_command }) => match record_command {

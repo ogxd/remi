@@ -51,24 +51,31 @@ brew upgrade ogxd/tap/remi
 
 Or re-run the installer script to get the latest version.
 
-## Step 2 — Run `remi check`
+## Step 2 — Initialize the database (first time only)
 
-`remi check` is the single command for the agent workflow. It installs the git hook (if needed), optionally scans repositories, queues recap jobs, and outputs all pending items.
-
-**First time (or backfill):** provide the root directory where the user keeps their repositories:
+Check whether `~/.remi/` contains any year directories:
 
 ```sh
-remi check ~/src
+ls ~/.remi/ 2>/dev/null | grep -E '^[0-9]{4}$'
+```
+
+If no year directories are found, the database has never been populated. **Ask the user** which directory contains their git repositories (e.g. `~/src`, `~/projects`), then scan it:
+
+```sh
+remi scan <path>
 ```
 
 A date range can be provided to limit scope:
 
 ```sh
-remi check ~/src --start 2025-01-01
-remi check ~/src --start 2025-01-01 --end 2025-06-01
+remi scan <path> --start 2025-01-01
 ```
 
-**Subsequent runs** (after the hook has been recording commits automatically):
+This step is only needed once. After that, the git hook keeps the database up to date automatically.
+
+## Step 3 — Run `remi check`
+
+`remi check` is the ongoing agent command. It installs the git hook (if not already done), queues recap jobs for any past periods that are missing one, and outputs all pending items.
 
 ```sh
 remi check
