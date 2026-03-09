@@ -43,37 +43,43 @@ Or using the installer script:
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ogxd/remi/releases/latest/download/remi-installer.sh | sh
 ```
 
-Then run remi once to install the global git hook for future commits:
+## Step 2 — Run `remi check`
+
+`remi check` is the single command for the agent workflow. It installs the git hook (if needed), optionally scans repositories, queues recap jobs, and outputs all pending items.
+
+**First time (or backfill):** provide the root directory where the user keeps their repositories:
 
 ```sh
-remi
+remi check ~/src
 ```
 
-## Step 2 — Initialize the activity database (first time only)
-
-Check whether `~/.remi/` contains any year directories. If it is empty or missing, the database has never been populated. Ask user permission to scan a directory to backfill from existing repositories:
+A date range can be provided to limit scope:
 
 ```sh
-remi scan ~/src
+remi check ~/src --start 2025-01-01
+remi check ~/src --start 2025-01-01 --end 2025-06-01
 ```
 
-Replace `~/src` with the root directory where the user keeps their repositories. A start date can be provided to limit scope:
+**Subsequent runs** (after the hook has been recording commits automatically):
 
 ```sh
-remi scan ~/src --start 2025-01-01
-remi scan ~/src --start 2025-01-01 --end 2025-06-01
+remi check
 ```
 
-This will discover all git repositories under that path, collect all commits authored by the current git user, and write daily log files. If a model is configured in `~/.remi/config.toml`, it will also generate LLM descriptions for commits that have no git body.
+`remi check` outputs all pending items to stdout. Process each item using a subagent (to keep the main context clean):
 
-After scanning, generate recaps for past months and years:
+**For each pending commit:**
+1. Read the diff from the `remi check` output
+2. Summarize it in one concise sentence
+3. Call: `remi record commit <hash> "<summary>"`
 
-```sh
-remi recap
-remi recap --start 2025-01-01 --end 2025-12-31
-```
+**For each pending recap:**
+1. Read the log content from the `remi check` output
+2. Generate a recap in markdown (bullet points, key themes, notable achievements)
+3. Write the recap directly to the output path shown
+4. Call: `remi record recap <period>`
 
-Only periods that are fully in the past and fully within the given date range are recapped.
+Process month recaps before year recaps, since year recaps may draw from monthly recap files.
 
 ## How the data is organized
 
@@ -81,17 +87,20 @@ All data lives under `~/.remi/`:
 
 ```
 ~/.remi/
+  pending/
+    abc1234.md        ← pending commit (written by hook or scan)
+    recap-2025-01.md  ← pending month recap
+    recap-2025.md     ← pending year recap
   2025/
     01/
-      recap.md        ← monthly recap (LLM-generated)
+      recap.md        ← monthly recap (written by agent)
       14-01-2025.md   ← daily log
       27-01-2025.md
     ...
-    recap.md          ← yearly recap (LLM-generated)
+    recap.md          ← yearly recap (written by agent)
   2026/
     03/
       07-03-2026.md
-  config.toml
   remi.log
 ```
 

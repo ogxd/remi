@@ -10,7 +10,6 @@ use chrono::NaiveDate;
 pub struct CommitEntry {
     pub short_hash: String,
     pub title: String,
-    pub body: String,
     pub repo: String,
     pub repo_path: PathBuf,
     pub timestamp: i64,
@@ -62,7 +61,7 @@ pub fn get_repo_commits(repo: &Path, author_email: &str, start: Option<&str>, en
     let mut args = vec![
         "log".to_string(),
         format!("--author={author_email}"),
-        "--format=%x1e%h%x1f%s%x1f%at%x1f%b".to_string(),
+        "--format=%x1e%h%x1f%s%x1f%at".to_string(),
     ];
     if let Some(s) = start {
         args.push(format!("--after={s}"));
@@ -86,18 +85,16 @@ pub fn get_repo_commits(repo: &Path, author_email: &str, start: Option<&str>, en
         .split('\x1e')
         .filter(|s| !s.trim().is_empty())
         .filter_map(|record| {
-            let parts: Vec<&str> = record.splitn(4, '\x1f').collect();
+            let parts: Vec<&str> = record.splitn(3, '\x1f').collect();
             if parts.len() < 3 {
                 return None;
             }
             let short_hash = parts[0].trim().to_string();
             let title = parts[1].trim().to_string();
             let timestamp: i64 = parts[2].trim().parse().ok()?;
-            let body = parts.get(3).map(|s| s.trim().to_string()).unwrap_or_default();
             Some(CommitEntry {
                 short_hash,
                 title,
-                body,
                 repo: repo_name.clone(),
                 repo_path: repo.to_path_buf(),
                 timestamp,

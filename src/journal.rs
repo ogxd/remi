@@ -11,17 +11,15 @@ pub fn write_entry(
 ) -> std::io::Result<()> {
     writeln!(file, "- [{time_str}] Commit {short_hash} on repository \"{repo}\"")?;
     writeln!(file, "  - Message: {title}")?;
-    if let Some(desc) = description {
-        if !desc.is_empty() {
-            let mut lines = desc.lines();
-            if let Some(first) = lines.next() {
-                writeln!(file, "  - Description: {first}")?;
-                for line in lines {
-                    if line.trim().is_empty() {
-                        writeln!(file)?;
-                    } else {
-                        writeln!(file, "    {line}")?;
-                    }
+    if let Some(desc) = description && !desc.is_empty() {
+        let mut lines = desc.lines();
+        if let Some(first) = lines.next() {
+            writeln!(file, "  - Description: {first}")?;
+            for line in lines {
+                if line.trim().is_empty() {
+                    writeln!(file)?;
+                } else {
+                    writeln!(file, "    {line}")?;
                 }
             }
         }

@@ -1,102 +1,14 @@
 use std::{fs, path::Path};
 
 use chrono::{Local, NaiveDate};
-use indicatif::{ProgressBar, ProgressStyle};
 use log::error;
 
-use crate::config::load_config;
-use crate::llm::llm_recap;
 use crate::paths::remi_dir;
+use crate::pending::write_pending_recap;
 
 pub fn last_day_of_month(year: i32, month: u32) -> NaiveDate {
     let (y, m) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
     NaiveDate::from_ymd_opt(y, m, 1).unwrap() - chrono::Duration::days(1)
-}
-
-pub async fn generate_month_recap(month_path: &Path, model: &str) {
-    let recap_path = month_path.join("recap.md");
-
-    // Collect daily logs sorted by filename
-    let Ok(entries) = fs::read_dir(month_path) else { return };
-    let mut files: Vec<_> = entries
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| p.extension().map(|e| e == "md").unwrap_or(false) && p.file_name().map(|n| n != "recap.md").unwrap_or(false))
-        .collect();
-    files.sort();
-
-    if files.is_empty() {
-        return;
-    }
-
-    let mut content = String::new();
-    for file in &files {
-        if let Ok(text) = fs::read_to_string(file) {
-            content.push_str(&text);
-            content.push('\n');
-        }
-    }
-
-    let period_label = month_path
-        .components()
-        .rev()
-        .take(2)
-        .collect::<Vec<_>>()
-        .into_iter()
-        .rev()
-        .map(|c| c.as_os_str().to_string_lossy().into_owned())
-        .collect::<Vec<_>>()
-        .join("/");
-
-    log::info!("generating month recap for {period_label}");
-    if let Some(recap) = llm_recap(&content, "month", model).await {
-        if let Err(e) = fs::write(&recap_path, recap) {
-            error!("failed to write month recap: {e}");
-        } else {
-            log::info!("wrote month recap to {}", recap_path.display());
-        }
-    }
-}
-
-pub async fn generate_year_recap(year_path: &Path, model: &str) {
-    let recap_path = year_path.join("recap.md");
-
-    // Collect monthly recap.md files sorted by month
-    let Ok(entries) = fs::read_dir(year_path) else { return };
-    let mut month_recaps: Vec<_> = entries
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| p.is_dir())
-        .map(|p| p.join("recap.md"))
-        .filter(|p| p.exists())
-        .collect();
-    month_recaps.sort();
-
-    if month_recaps.is_empty() {
-        return;
-    }
-
-    let mut content = String::new();
-    for file in &month_recaps {
-        if let Some(month) = file.parent().and_then(|p| p.file_name()) {
-            content.push_str(&format!("## Month {}\n\n", month.to_string_lossy()));
-        }
-        if let Ok(text) = fs::read_to_string(file) {
-            content.push_str(&text);
-            content.push('\n');
-        }
-    }
-
-    let year_label = year_path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-
-    log::info!("generating year recap for {year_label}");
-    if let Some(recap) = llm_recap(&content, "year", model).await {
-        if let Err(e) = fs::write(&recap_path, recap) {
-            error!("failed to write year recap: {e}");
-        } else {
-            log::info!("wrote year recap to {}", recap_path.display());
-        }
-    }
 }
 
 /// Collects (year, month, path) tuples for all past month directories under remi_dir.
@@ -126,15 +38,12 @@ pub fn past_month_dirs(today: NaiveDate, start: Option<NaiveDate>, end: Option<N
             };
             let first_day = NaiveDate::from_ymd_opt(year_num, month_num, 1).unwrap();
             let last_day = last_day_of_month(year_num, month_num);
-            // Month must be fully in the past
             if last_day >= today {
                 continue;
             }
-            // start must not cut into the middle of the month
             if start.map(|s| s > first_day).unwrap_or(false) {
                 continue;
             }
-            // end must not cut into the middle of the month
             if end.map(|e| e < last_day).unwrap_or(false) {
                 continue;
             }
@@ -174,45 +83,74 @@ pub fn past_year_dirs(today: NaiveDate, start: Option<NaiveDate>, end: Option<Na
     result
 }
 
-/// Generates any missing recaps for past months and years. Skips existing recap.md files.
-pub async fn maybe_generate_recaps(model: &str) {
+fn queue_month_recap(month_path: &Path) {
+    let recap_path = month_path.join("recap.md");
+
+    // Check there are daily logs to recap
+    let Ok(entries) = fs::read_dir(month_path) else { return };
+    let has_logs = entries
+        .flatten()
+        .any(|e| e.path().extension().map(|x| x == "md").unwrap_or(false) && e.file_name() != "recap.md");
+    if !has_logs {
+        return;
+    }
+
+    let period_label = month_path
+        .components()
+        .rev()
+        .take(2)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .map(|c| c.as_os_str().to_string_lossy().into_owned())
+        .collect::<Vec<_>>()
+        .join("-");
+
+    if let Err(e) = write_pending_recap(&period_label, "month", &recap_path.to_path_buf()) {
+        error!("failed to write pending recap for {period_label}: {e}");
+    } else {
+        log::info!("queued month recap for {period_label}");
+    }
+}
+
+fn queue_year_recap(year_path: &Path) {
+    let recap_path = year_path.join("recap.md");
+
+    // Check there are month recaps or daily logs to draw from
+    let Ok(entries) = fs::read_dir(year_path) else { return };
+    let has_months = entries.flatten().any(|e| e.path().is_dir());
+    if !has_months {
+        return;
+    }
+
+    let year_label = year_path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+
+    if let Err(e) = write_pending_recap(&year_label, "year", &recap_path.to_path_buf()) {
+        error!("failed to write pending recap for {year_label}: {e}");
+    } else {
+        log::info!("queued year recap for {year_label}");
+    }
+}
+
+/// Queues pending recap files for any past months/years that don't have recap.md yet.
+pub fn maybe_generate_recaps() {
     let today = Local::now().date_naive();
 
-    // Months first (year recaps depend on them)
-    let month_tasks: Vec<_> = past_month_dirs(today, None, None)
-        .into_iter()
-        .filter(|(_, _, p)| !p.join("recap.md").exists())
-        .map(|(_, _, path)| {
-            let model = model.to_string();
-            tokio::spawn(async move { generate_month_recap(&path, &model).await })
-        })
-        .collect();
-    for t in month_tasks {
-        if let Err(e) = t.await {
-            error!("month recap task panicked: {e}");
+    for (_, _, path) in past_month_dirs(today, None, None) {
+        if !path.join("recap.md").exists() {
+            queue_month_recap(&path);
         }
     }
 
-    // Years after months are done
-    let year_tasks: Vec<_> = past_year_dirs(today, None, None)
-        .into_iter()
-        .filter(|(_, p)| !p.join("recap.md").exists())
-        .map(|(_, path)| {
-            let model = model.to_string();
-            tokio::spawn(async move { generate_year_recap(&path, &model).await })
-        })
-        .collect();
-    for t in year_tasks {
-        if let Err(e) = t.await {
-            error!("year recap task panicked: {e}");
+    for (_, path) in past_year_dirs(today, None, None) {
+        if !path.join("recap.md").exists() {
+            queue_year_recap(&path);
         }
     }
 }
 
-/// Regenerates recaps (overwriting existing) for all complete months/years within the date range.
-pub async fn run_recap(start: Option<String>, end: Option<String>) {
-    let model = load_config().model().to_owned();
-
+/// Queues pending recap files for all complete months/years within the date range.
+pub fn run_recap(start: Option<String>, end: Option<String>) {
     let start_date = start.as_deref().and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok());
     let end_date = end.as_deref().and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok());
     let today = Local::now().date_naive();
@@ -226,49 +164,15 @@ pub async fn run_recap(start: Option<String>, end: Option<String>) {
         return;
     }
 
-    let pb = ProgressBar::new(total as u64);
-    pb.set_style(
-        ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {pos}/{len}  {msg}")
-            .unwrap()
-            .progress_chars("=> "),
-    );
-
-    // Months first (in parallel), then years
-    let month_tasks: Vec<_> = months
-        .into_iter()
-        .map(|(y, m, path)| {
-            let model = model.clone();
-            let pb = pb.clone();
-            tokio::spawn(async move {
-                pb.set_message(format!("month {y}/{m:02}"));
-                generate_month_recap(&path, &model).await;
-                pb.inc(1);
-            })
-        })
-        .collect();
-    for t in month_tasks {
-        if let Err(e) = t.await {
-            error!("month recap task panicked: {e}");
-        }
+    let mut queued = 0;
+    for (_, _, path) in months {
+        queue_month_recap(&path);
+        queued += 1;
+    }
+    for (_, path) in years {
+        queue_year_recap(&path);
+        queued += 1;
     }
 
-    let year_tasks: Vec<_> = years
-        .into_iter()
-        .map(|(y, path)| {
-            let model = model.clone();
-            let pb = pb.clone();
-            tokio::spawn(async move {
-                pb.set_message(format!("year {y}"));
-                generate_year_recap(&path, &model).await;
-                pb.inc(1);
-            })
-        })
-        .collect();
-    for t in year_tasks {
-        if let Err(e) = t.await {
-            error!("year recap task panicked: {e}");
-        }
-    }
-
-    pb.finish_with_message("done");
+    println!("Queued {queued} recap(s) in {}. Run `remi check` to process them.", crate::paths::pending_dir().display());
 }
