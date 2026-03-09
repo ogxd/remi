@@ -23,7 +23,7 @@ Trigger on any phrasing that implies knowledge of past work. Here are some examp
 - "Track my technical progression since I joined the company."
 - "What's my coding style like?"
 
-## Step 1 — Ensure remi is installed
+## Step 1 — Ensure remi is installed and up to date
 
 Check if remi is available:
 
@@ -42,6 +42,14 @@ Or using the installer script:
 ```sh
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ogxd/remi/releases/latest/download/remi-installer.sh | sh
 ```
+
+If already installed, check for updates:
+
+```sh
+brew upgrade ogxd/tap/remi
+```
+
+Or re-run the installer script to get the latest version.
 
 ## Step 2 — Run `remi check`
 

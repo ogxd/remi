@@ -30,102 +30,34 @@ curl --create-dirs -o ~/.claude/skills/remi/SKILL.md https://raw.githubuserconte
 
 That's it... 🤯
 
-## Manual installation
-
-> :warning: **You probably don't need to manuall install remi. Using the SKILL.md should take care of everything for you through your agent.**
-
-### Homebrew (macOS / Linux)
-
-```sh
-brew install ogxd/tap/remi
-```
-
-### Pre-built binary
-
-**macOS / Linux:**
-```sh
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ogxd/remi/releases/latest/download/remi-installer.sh | sh
-```
-
-**Windows (PowerShell):**
-```powershell
-irm https://github.com/ogxd/remi/releases/latest/download/remi-installer.ps1 | iex
-```
-
-### Via cargo
-
-```sh
-cargo install remi
-```
-
-## Setup
-
-Run remi once to install the global git hook:
-
-```sh
-remi
-```
-
-That's it. All subsequent commits across all repositories will be logged automatically.
-
-### LLM summarization (optional)
-
-To enable automatic commit descriptions, create `~/.remi/config.toml`:
-
-```toml
-model = "gemini-2.0-flash"
-```
-
-Any model supported by [genai](https://github.com/jeremychone/rust-genai) works: OpenAI, Anthropic, Gemini, and others. The corresponding API key must be available as an environment variable (e.g. `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).
-
-## Commands
-
-Remi can be used manually, but also by an agent directly.
-
-### `remi scan <path>`
-
-Backfills the journal by scanning a directory tree for git repositories and collecting your past commits.
-
-```sh
-remi scan ~/src
-remi scan ~/src --start 2026-01-01 --end 2026-03-01
-```
-
-### `remi recap`
-
-(Re)generates `recap.md` files for all complete past months and years. Recaps are also auto-generated whenever remi detects a new month or year directory.
-
-```sh
-remi recap
-remi recap --start 2026-01-01 --end 2026-02-28
-```
-
-Only periods that are fully in the past and fully within the given date range are recapped.
-
 ## How it works
 
-On first run, remi installs a global `post-commit` git hook. After that, every commit you make is appended and summarized to a daily markdown file.
+Remi uses an agent-driven protocol — it never calls an LLM directly. Instead:
+
+1. A global `post-commit` git hook writes a pending file to `~/.remi/pending/` after every commit, containing the commit metadata and full diff.
+2. When your agent runs `remi check`, it reads all pending files and outputs structured items to stdout — commits to summarize and recap periods to write.
+3. The agent summarizes each diff and calls `remi record commit <hash> "<summary>"` to write the journal entry and clear the pending file.
 
 Logs are organized under `~/.remi/`:
 
 ```
 ~/.remi/
+  pending/
+    a3f9c12.md        ← written by the hook, consumed by the agent
   2026/
     02/
       14-02-2026.md
       28-02-2026.md
-      recap.md        ← auto-generated at end of month
+      recap.md        ← written by the agent at end of month
     03/
       07-03-2026.md
-  recap.md            ← auto-generated at end of year
+  recap.md            ← written by the agent at end of year
 ```
 
-Each entry looks like:
+Each journal entry looks like:
 
 ```markdown
 - [14:32:10] Commit a3f9c12 on repository "my-project"
   - Message: Fix null pointer in auth handler
   - Description: Adds a nil check before dereferencing the user pointer in the auth middleware.
 ```
-
-If you provide a git commit body, it is used as the description. Otherwise, if a model is configured, remi calls the LLM to summarize the diff.
