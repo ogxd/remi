@@ -211,10 +211,7 @@ pub async fn maybe_generate_recaps(model: &str) {
 
 /// Regenerates recaps (overwriting existing) for all complete months/years within the date range.
 pub async fn run_recap(start: Option<String>, end: Option<String>) {
-    let Some(model) = load_config().model else {
-        eprintln!("remi: no model configured in ~/.remi/config.toml");
-        return;
-    };
+    let model = load_config().model().to_owned();
 
     let start_date = start.as_deref().and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok());
     let end_date = end.as_deref().and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok());

@@ -75,7 +75,7 @@ pub async fn run_scan(path: PathBuf, start: Option<String>, end: Option<String>)
             .progress_chars("=> "),
     );
 
-    let model: Arc<Option<String>> = Arc::new(load_config().model);
+    let model: Arc<String> = Arc::new(load_config().model().to_owned());
     let num_days = by_day.len();
     let sem = Arc::new(Semaphore::new(8));
 
@@ -95,9 +95,6 @@ pub async fn run_scan(path: PathBuf, start: Option<String>, end: Option<String>)
                     if !body.is_empty() {
                         return Some(body);
                     }
-                    let Some(ref m) = *model else {
-                        return None;
-                    };
                     let _permit = sem.acquire().await.unwrap();
                     pb.set_message(format!("{hash}"));
                     let diff = Command::new("git")
@@ -106,7 +103,7 @@ pub async fn run_scan(path: PathBuf, start: Option<String>, end: Option<String>)
                         .output()
                         .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
                         .unwrap_or_default();
-                    summarize_diff(&diff, m).await
+                    summarize_diff(&diff, &model).await
                 }
             });
             let descriptions: Vec<Option<String>> = join_all(desc_futs).await;
@@ -150,7 +147,5 @@ pub async fn run_scan(path: PathBuf, start: Option<String>, end: Option<String>)
 
     println!("Wrote {} days of logs to {}", num_days, remi_dir().display());
 
-    if let Some(model) = load_config().model {
-        maybe_generate_recaps(&model).await;
-    }
+    maybe_generate_recaps(load_config().model()).await;
 }

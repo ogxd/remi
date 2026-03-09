@@ -93,16 +93,9 @@ pub async fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
     let description = if !body.is_empty() {
         Some(body)
     } else {
-        match load_config().model {
-            Some(model) => {
-                let diff = git_output(&["show", "HEAD"]).unwrap_or_default();
-                summarize_diff(&diff, &model).await
-            }
-            None => {
-                info!("no model configured, skipping LLM description");
-                None
-            }
-        }
+        let model = load_config().model().to_owned();
+        let diff = git_output(&["show", "HEAD"]).unwrap_or_default();
+        summarize_diff(&diff, &model).await
     };
 
     let log = daily_log_file();
@@ -113,9 +106,7 @@ pub async fn record_commit() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("recorded commit [{hash}] in {}", log.display());
 
-    if let Some(model) = load_config().model {
-        maybe_generate_recaps(&model).await;
-    }
+    maybe_generate_recaps(load_config().model()).await;
 
     Ok(())
 }
