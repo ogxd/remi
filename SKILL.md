@@ -14,12 +14,12 @@ Trigger on any phrasing that implies knowledge of past work. Here are some examp
 **Reporting & Admin**
 - "Prepare my weekly meeting notes."
 - "Fill my time sheets for the past two weeks."
-- "Give peer feedback on my colleagues."
+- "Give me peer feedback on my work, as if your were my colleague."
 - "How's my productivity going?"
 
 **Career & Growth**
+- "Identify key areas to improve my overall productivity."
 - "Write my self-assessment and performance review."
-- "Prepare me for a future promotion."
 - "Track my technical progression since I joined the company."
 - "What's my coding style like?"
 
