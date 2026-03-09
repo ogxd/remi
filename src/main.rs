@@ -18,7 +18,7 @@ use recap::{maybe_generate_recaps, run_recap};
 use scan::run_scan;
 
 #[derive(Parser)]
-#[command(name = "remi", about = "Remi – your commit journal")]
+#[command(name = "remi", about = "Remi – your commit journal", version)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,

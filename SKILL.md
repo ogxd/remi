@@ -23,33 +23,19 @@ Trigger on any phrasing that implies knowledge of past work. Here are some examp
 - "Track my technical progression since I joined the company."
 - "What's my coding style like?"
 
-## Step 1 — Ensure remi is installed and up to date
+## Step 1 — Ensure the correct version of remi is installed
 
-Check if remi is available:
-
-```sh
-which remi
-```
-
-If not found, install it:
+This skill requires **remi 0.2.3**. Check the installed version:
 
 ```sh
-brew install ogxd/tap/remi
+remi --version
 ```
 
-Or using the installer script:
+If the command is not found or the version is not `remi 0.2.3`, install the exact required version:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ogxd/remi/releases/latest/download/remi-installer.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/ogxd/remi/releases/download/v0.2.3/remi-installer.sh | sh
 ```
-
-If already installed, check for updates:
-
-```sh
-brew upgrade ogxd/tap/remi
-```
-
-Or re-run the installer script to get the latest version.
 
 ## Step 2 — Initialize the database (first time only)
 
