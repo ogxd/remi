@@ -28,7 +28,7 @@ Remi is mainly meant to be used by your agent directly. Just install the [SKILL.
 curl --create-dirs -o ~/.claude/skills/remi/SKILL.md https://raw.githubusercontent.com/ogxd/remi/master/SKILL.md
 ```
 
-That's it... 🤯
+That's it, you don't need anything else 🪄 ! The skill will install the CLI if missing. To update remi, just update the skill with that same command.
 
 ## How it works
 
