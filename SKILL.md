@@ -67,7 +67,7 @@ This step is only needed once. After that, the git hook keeps the database up to
 remi check
 ```
 
-`remi check` outputs all pending items to stdout. Process each item using a subagent (to keep the main context clean):
+`remi check` outputs all pending items to stdout. Process each item using a subagent with the cheapest available model (to keep the main context clean and minimize cost — diff summaries and recaps involve large inputs):
 
 **For each pending commit:**
 1. Read the diff from the `remi check` output
